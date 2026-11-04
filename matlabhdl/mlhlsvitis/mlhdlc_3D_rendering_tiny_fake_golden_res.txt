@@ -1,0 +1,6 @@
+% # Copyright 2023 The MathWorks, Inc.
+% 2D fake image after rendering - 3D model: tiny_fake, angle = 0;
+0000
+0000
+1110
+0000

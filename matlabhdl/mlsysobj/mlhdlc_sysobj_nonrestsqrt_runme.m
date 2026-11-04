@@ -1,0 +1,49 @@
+%
+
+%   Copyright 2023-2025 The MathWorks, Inc.
+
+% Provide Design Name and Testbench file.
+designName = 'mlhdlc_sysobj_nonrestsqrt';
+designTB = 'mlhdlc_sysobj_nonrestsqrt_tb';
+
+% Create fixpt config object.
+fixptCfg = coder.config('fixpt');
+fixptCfg.TestBenchName = designTB;
+
+% log2
+mathFcnGenCfg = coder.approximation('log2');
+mathFcnGenCfg.NumberOfPoints = 1024; % use to increase accuracy; preferably a power of 2 for HDL
+mathFcnGenCfg.InterpolationDegree = 0; %      can be 0,1,2, or 3
+fixptCfg.addApproximation(mathFcnGenCfg);
+
+% Set the codegen target
+isCodingForHDL = true;
+isCodingForStratusHLS = false;
+isCodingForVitisHLS = false;
+
+% Create HDL config.
+cfg = coder.config('hdl');
+cfg.TestBenchName = designTB;
+if ~isCodingForHDL
+    cfg.Workflow = 'High Level Synthesis';
+    cfg.GenerateHDLTestBench = true;
+    cfg.SimulateGeneratedCode = true;
+end
+
+if isCodingForStratusHLS
+    cfg.SynthesisTool = "Cadence Stratus HLS"; %#ok<*UNRCH>
+elseif isCodingForVitisHLS
+    cfg.SynthesisTool = "Xilinx Vitis HLS";
+else
+    cfg.SynthesisTool = 'Xilinx Vivado';
+end
+
+cfg.SynthesizeGeneratedCode = true;
+cfg.SynthesisToolChipFamily = 'Artix7';
+cfg.SynthesisToolDeviceName = 'xa7a100t';
+cfg.SynthesisToolPackageName = 'csg324';
+cfg.SynthesisToolSpeedValue = '-1I';
+
+% Call codegen with float2fixed and hdl config objects.
+codegen('-float2fixed', 'fixptCfg', '-config', 'cfg', designName, '-launchreport');
+
